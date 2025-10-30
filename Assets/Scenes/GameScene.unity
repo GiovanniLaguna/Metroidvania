@@ -404,11 +404,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57b2e5e937abcd74884a0831d489b01c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  moveSpeed: 5
   jumpForce: 10
   foot: {fileID: 1931583730}
-  bullet: {fileID: 3218643482246440428, guid: bbf46eafab99188489ad23a151bcc431, type: 3}
-  Bullets: []
+  footRadius: 0.15
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 8
+  bulletPrefab: {fileID: 3218643482246440428, guid: bbf46eafab99188489ad23a151bcc431, type: 3}
   gun: {fileID: 806892824}
+  initialPoolSize: 5
 --- !u!114 &335174970
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1506,11 +1511,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57b2e5e937abcd74884a0831d489b01c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  moveSpeed: 5
   jumpForce: 10
   foot: {fileID: 0}
-  bullet: {fileID: 0}
-  Bullets: []
+  footRadius: 0.15
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  bulletPrefab: {fileID: 0}
   gun: {fileID: 0}
+  initialPoolSize: 5
 --- !u!61 &1023002839
 BoxCollider2D:
   m_ObjectHideFlags: 0

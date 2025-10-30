@@ -1,135 +1,135 @@
-using NUnit.Framework;
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerScript : MonoBehaviour
 {
-   private Rigidbody2D rb;
-    private float speed;
-    private bool dir = true;
+    [Header("Movimiento")]
+    [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float jumpForce = 4f;
 
-    [SerializeField]
-    private float jumpForce;
+    [Header("Ground Check")]
+    [SerializeField] private Transform foot;
+    [SerializeField] private float footRadius = 0.15f;
+    [SerializeField] private LayerMask groundLayer;
 
-    [SerializeField]
-    private Transform foot;
+    [Header("Disparo")]
+    [SerializeField] private GameObject bulletPrefab;
+    [SerializeField] private Transform gun;
+    [SerializeField] private int initialPoolSize = 5;
 
-    [SerializeField]
-    private GameObject bullet;
+    private Rigidbody2D rb;
+    private List<GameObject> bullets = new List<GameObject>();
+    private float inputX;
+    private bool facingRight = true;
 
-    [SerializeField]
-    private List <GameObject> Bullets = new List<GameObject>();
-
-    [SerializeField]
-    private Transform gun;
-    private float direcction;
-
-    
-
-    // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        speed = 5;
-        jumpForce = 4;
-        for (int i = 0; i < 5; i++) 
+
+        // pool inicial
+        for (int i = 0; i < initialPoolSize; i++)
         {
-         GameObject clone = Instantiate(bullet,Vector3.zero, Quaternion.identity);
+            GameObject clone = Instantiate(bulletPrefab, Vector3.zero, Quaternion.identity);
             clone.SetActive(false);
-            Bullets.Add(clone);
+            bullets.Add(clone);
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        direcction = Input.GetAxis("Horizontal");
+        // entrada horizontal
+        inputX = Input.GetAxisRaw("Horizontal");
 
-        if (Input.GetButtonDown("Jump")&& isGrounded() == true)
+        // salto
+        if (Input.GetButtonDown("Jump") && IsGrounded())
         {
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f); // resetea Y para saltos m�s consistentes
             rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-           if (rb.linearVelocity.x >= 5)
-            {
-                rb.linearVelocityX = 5;
-            }
-
-           else if (rb.linearVelocity.x <= -5)
-            {
-                rb.linearVelocityX = 5;
-            }
-
         }
-        if(Input.GetButtonDown("Fire1"))
+
+        // disparo
+        if (Input.GetButtonDown("Fire1"))
         {
-            GameObject currentbullet = Getbullet();
-            if (currentbullet != null)
-            {
-                if (dir == true)
-
-                {
-                    currentbullet.GetComponent<BulletScript>().SetSpeed(10);
-                }
-                else if (dir == false) 
-                {
-                currentbullet.GetComponent <BulletScript>().SetSpeed(-10);
-                }
-
-                currentbullet.transform.position = gun.position;
-                currentbullet.SetActive(true);
-            }
-     
-        
+            Shoot();
         }
 
-        if (direcction < 0)
-        {
-            transform.localScale = new Vector3(-1, 1, 0);
-            dir = false;
-        }
-
-        else if (direcction > 0)
-        {
-            transform.localScale = new Vector3(1, 1, 0);
-            dir = true;
-        }
+        // virar sprite
+        HandleFlip();
     }
 
-    GameObject Getbullet() 
-    {
-    foreach (GameObject b in Bullets) 
-        {
-        if (!b.activeInHierarchy)
-            {
-                return b;
-            }    
-        }
-    GameObject clone = Instantiate(bullet, Vector3.zero,Quaternion.identity);
-        clone.SetActive(false);
-        Bullets.Add (clone);
-    return clone;
-    }
-
-    bool isGrounded()
-    {
-        return Physics2D.OverlapCircle(foot.position, .1f);
-
-    }
-    
-   
     private void FixedUpdate()
     {
-      float xdir = Input.GetAxis("Horizontal");
-      rb.AddForce(new Vector2(xdir * speed,0));
+        // movimiento horizontal estable
+        rb.linearVelocity = new Vector2(inputX * moveSpeed, rb.linearVelocity.y);
+    }
+
+    private void Shoot()
+    {
+        GameObject currentBullet = GetBulletFromPool();
+        if (currentBullet == null) return;
+
+        currentBullet.transform.position = gun.position;
+        currentBullet.SetActive(true);
+
+        // direcci�n seg�n hacia d�nde mira el player
+        int dir = facingRight ? 1 : -1;
+
+        BulletScript b = currentBullet.GetComponent<BulletScript>();
+        if (b != null)
+        {
+            b.SetSpeed(10f * dir);
+        }
+    }
+
+    private GameObject GetBulletFromPool()
+    {
+        foreach (GameObject b in bullets)
+        {
+            if (!b.activeInHierarchy)
+                return b;
+        }
+
+        // si no hay, creamos m�s
+        GameObject extra = Instantiate(bulletPrefab, Vector3.zero, Quaternion.identity);
+        extra.SetActive(false);
+        bullets.Add(extra);
+        return extra;
+    }
+
+    private bool IsGrounded()
+    {
+        if (foot == null) return false;
+        return Physics2D.OverlapCircle(foot.position, footRadius, groundLayer);
+    }
+
+    private void HandleFlip()
+    {
+        if (inputX > 0 && !facingRight)
+        {
+            facingRight = true;
+            transform.localScale = new Vector3(1, 1, 1);
+        }
+        else if (inputX < 0 && facingRight)
+        {
+            facingRight = false;
+            transform.localScale = new Vector3(-1, 1, 1);
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.transform.CompareTag("DeathZone"))
-            {
+        {
             GameManager.instance.playerLifes--;
             transform.position = Vector3.zero;
         }
+    }
+
+    // para ver el groundcheck
+    private void OnDrawGizmosSelected()
+    {
+        if (foot == null) return;
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(foot.position, footRadius);
     }
 }
