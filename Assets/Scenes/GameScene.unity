@@ -220,6 +220,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Velocity: {x: 1, y: 0}
+--- !u!95 &69743801 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 2827103957386388844, guid: dbf2d18802157e84ca7de16c29ecfeed, type: 3}
+  m_PrefabInstance: {fileID: 9081868053236532274}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &335174964
 GameObject:
   m_ObjectHideFlags: 0
@@ -8971,6 +8976,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3155765707687121466, guid: dbf2d18802157e84ca7de16c29ecfeed, type: 3}
+      propertyPath: animator
+      value: 
+      objectReference: {fileID: 69743801}
     - target: {fileID: 3155765707687121466, guid: dbf2d18802157e84ca7de16c29ecfeed, type: 3}
       propertyPath: groundLayer.m_Bits
       value: 0
