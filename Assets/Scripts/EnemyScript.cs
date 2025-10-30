@@ -47,8 +47,9 @@ public class EnemyScript : MonoBehaviour
     {
         rb.linearVelocity = new Vector2(speed, 0);
     }
-    //private void OnCollisionEnter2D(Collision2D collision)
-    //{
-    //    Destroy(this.gameObject);
-    //}
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Bullet"))
+        { Destroy(this.gameObject); }
+    }
 }

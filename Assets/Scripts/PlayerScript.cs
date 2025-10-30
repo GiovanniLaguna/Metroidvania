@@ -32,7 +32,7 @@ public class PlayerScript : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        speed = 8;
+        speed = 5;
         jumpForce = 4;
         for (int i = 0; i < 5; i++) 
         {
@@ -83,15 +83,15 @@ public class PlayerScript : MonoBehaviour
         
         }
 
-        if(direcction < 0)
+        if (direcction < 0)
         {
-            transform.localScale = new Vector3(-0.2f,0.2f,0);
+            transform.localScale = new Vector3(-1, 1, 0);
             dir = false;
         }
 
-        else if(direcction > 0) 
+        else if (direcction > 0)
         {
-        transform.localScale= new Vector3(0.2f,0.2f,0);
+            transform.localScale = new Vector3(1, 1, 0);
             dir = true;
         }
     }
