@@ -39,8 +39,15 @@ public class BulletScript : MonoBehaviour
         
     }
 
-   /* private void OnCollisionEnter2D(Collision2D collision)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
+        //var enemy = collision.GetComponent<EnemyBase>();
+        /*if (enemy)
+        {
+            enemy.TakeDamage(1);
+            gameObject.SetActive(false); // devuelve bala al pool
+        }*/
+
         gameObject.SetActive(false);
-   }*/
+   }
 }
