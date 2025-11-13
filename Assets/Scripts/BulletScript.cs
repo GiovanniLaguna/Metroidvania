@@ -2,52 +2,80 @@ using UnityEngine;
 
 public class BulletScript : MonoBehaviour
 {
+    [Header("Bullet Settings")]
+    [SerializeField] private float maxTime = 2f;
+    [SerializeField] private float defaultSpeed = 15f;
+
     private Rigidbody2D rb;
     private float speed;
-    private bool dir;
-    [SerializeField]
-    private float MaxTime;
-
     private float currentTime;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
 
-   public void SetSpeed(float s)
-    { this.speed = s; }
-
- public   float GetSpeed () { return this.speed; }
-
-    void Start()
-
+    // ------------------------------
+    //             INIT
+    // ------------------------------
+    private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        speed = 15;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnEnable()
+    {
+        currentTime = 0f;
+
+        // Si nadie llamó SetSpeed, usa la velocidad por defecto
+        if (Mathf.Approximately(speed, 0f))
+        {
+            speed = defaultSpeed;
+        }
+    }
+
+    // ------------------------------
+    //      SET / GET SPEED
+    // ------------------------------
+    public void SetSpeed(float value)
+    {
+        speed = value;
+    }
+
+    public float GetSpeed()
+    {
+        return speed;
+    }
+
+    // ------------------------------
+    //            UPDATE
+    // ------------------------------
+    private void Update()
     {
         currentTime += Time.deltaTime;
-        if (currentTime > MaxTime) 
+
+        if (currentTime >= maxTime)
         {
-        currentTime = 0;
             gameObject.SetActive(false);
         }
-        rb.AddForce(new Vector2(speed * 1, 0));
     }
+
     private void FixedUpdate()
     {
-        
+        // Velocidad constante en X, sin aceleración acumulada
+        rb.linearVelocity = new Vector2(speed, rb.linearVelocity.y);
     }
 
+    // ------------------------------
+    //          COLLISIONS
+    // ------------------------------
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        //var enemy = collision.GetComponent<EnemyBase>();
-        /*if (enemy)
+        // Si quieres hacer daño a algo que tenga HpBase:
+        /*
+        HpBase hp = collision.collider.GetComponent<HpBase>();
+        if (hp != null)
         {
-            enemy.TakeDamage(1);
-            gameObject.SetActive(false); // devuelve bala al pool
-        }*/
+            hp.RemoveHp(1);
+        }
+        */
 
+        // Devuelve la bala al pool
         gameObject.SetActive(false);
-   }
+    }
 }
