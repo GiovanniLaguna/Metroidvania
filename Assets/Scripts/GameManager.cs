@@ -42,26 +42,23 @@ using UnityEngine.SceneManagement;
             }
         }
 
-        public void GameOver()
-        {
-            EndGame();
-        }
+    public void GameOver()
+    {
+        // Puedes poner un pequeño delay o animación antes:
+        SceneManager.LoadScene("GameOverScene");
+    }
 
-        public void GameWon()
-        {
-            onGameWinEvents?.Invoke();
-            StartCoroutine(LoadSceneRoutine(2, 0));
-        }
+    public void GameWon()
+    {
+        SceneManager.LoadScene("VictoryScene");
+    }
 
-        private void EndGame()
-        {
-            StartCoroutine(LoadSceneRoutine(2, 1));
-        }
-
-        IEnumerator LoadSceneRoutine(float waitTime, int sceneToLoad)
+    IEnumerator LoadSceneRoutine(float waitTime, int sceneToLoad)
         {
             yield return new WaitForSeconds(waitTime);
             SceneManager.LoadScene(sceneToLoad);
         }
+
+
     }
 

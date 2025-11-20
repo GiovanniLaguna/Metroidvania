@@ -6,9 +6,15 @@ public class BulletScript : MonoBehaviour
     [SerializeField] private float maxTime = 2f;
     [SerializeField] private float defaultSpeed = 15f;
 
+    [Header("Direction")]
+    [SerializeField] private Vector2 defaultDirection = Vector2.right; // derecha por defecto
+
     private Rigidbody2D rb;
     private float speed;
     private float currentTime;
+
+    // Dirección actual de la bala (se puede setear desde el Player)
+    private Vector2 direction = Vector2.zero;
 
     // ------------------------------
     //             INIT
@@ -27,6 +33,12 @@ public class BulletScript : MonoBehaviour
         {
             speed = defaultSpeed;
         }
+
+        // Si nadie llamó SetDirection, usa la dirección por defecto (derecha)
+        if (direction == Vector2.zero)
+        {
+            direction = defaultDirection;
+        }
     }
 
     // ------------------------------
@@ -40,6 +52,21 @@ public class BulletScript : MonoBehaviour
     public float GetSpeed()
     {
         return speed;
+    }
+
+    // ------------------------------
+    //     SET / GET DIRECTION
+    // ------------------------------
+    public void SetDirection(Vector2 dir)
+    {
+        // Normalizamos para que solo importe la dirección,
+        // la magnitud la controla "speed".
+        direction = dir.normalized;
+    }
+
+    public Vector2 GetDirection()
+    {
+        return direction;
     }
 
     // ------------------------------
@@ -57,8 +84,8 @@ public class BulletScript : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // Velocidad constante en X, sin aceleración acumulada
-        rb.linearVelocity = new Vector2(speed, rb.linearVelocity.y);
+        // Velocidad constante usando la dirección (soporta diagonales)
+        rb.linearVelocity = direction * speed;
     }
 
     // ------------------------------

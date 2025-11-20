@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -30,7 +30,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float knifeBulletSpeed = 18f;
     private bool usingKnife = false;
 
-    [Header("Munici�n")]
+    // 🏹 Ballesta / SpreadGun
+    [Header("Ballesta / SpreadGun")]
+    [SerializeField] private bool crossbowActive = false;
+    [SerializeField] private float spreadAngle = 15f; // grados hacia arriba / abajo
+
+    [Header("Munición")]
     [SerializeField] private int maxAmmo = 20;
     [SerializeField] private int startingAmmo = 10;
     [SerializeField] private bool infiniteAmmo = false;
@@ -41,6 +46,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Text ammoText;
 
     private int currentAmmo;
+
+    [Header("Audio Disparo")]
+    [SerializeField] private AudioClip shootSfx;
+    [SerializeField] private AudioSource audioSource;
+
 
     private void Start()
     {
@@ -119,26 +129,90 @@ public class PlayerController : MonoBehaviour
         if (!infiniteAmmo && currentAmmo <= 0)
             return;
 
-        GameObject bullet = GetBulletFromPool();
-        if (bullet == null)
-            return;
-
+        // Consumimos 1 de munición por disparo (aunque salgan 3 balas en spread)
         if (!infiniteAmmo)
         {
             currentAmmo = Mathf.Clamp(currentAmmo - 1, 0, maxAmmo);
             UpdateAmmoUI();
         }
 
+        if (crossbowActive)
+        {
+            ShootSpread();
+        }
+        else
+        {
+            ShootSingle();
+        }
+    }
+
+    private void ShootSingle()
+    {
+        GameObject bullet = GetBulletFromPool();
+        if (bullet == null)
+            return;
+
         bullet.transform.position = gun.position;
         bullet.SetActive(true);
-
-        int dir = facingRight ? 1 : -1;
 
         BulletScript b = bullet.GetComponent<BulletScript>();
         if (b != null)
         {
             float speed = usingKnife ? knifeBulletSpeed : normalBulletSpeed;
-            b.SetSpeed(speed * dir);
+            b.SetSpeed(speed);
+
+            // Dirección horizontal según hacia dónde mira el jugador
+            Vector2 dir = facingRight ? Vector2.right : Vector2.left;
+            b.SetDirection(dir);
+        }
+        PlayShootSound();
+    }
+
+    // 🏹 Disparo tipo spread (3 balas)
+    private void ShootSpread()
+    {
+        float speed = usingKnife ? knifeBulletSpeed : normalBulletSpeed;
+
+        // Dirección base (derecha o izquierda)
+        Vector2 baseDir = facingRight ? Vector2.right : Vector2.left;
+
+        // Centro
+        FireBulletInDirection(baseDir, speed);
+
+        // Ángulo en radianes
+        float rad = spreadAngle * Mathf.Deg2Rad;
+
+        // Arriba
+        Vector2 dirUp = new Vector2(
+            baseDir.x * Mathf.Cos(rad),
+            Mathf.Sin(rad)
+        );
+
+        // Abajo
+        Vector2 dirDown = new Vector2(
+            baseDir.x * Mathf.Cos(rad),
+            -Mathf.Sin(rad)
+        );
+
+        FireBulletInDirection(dirUp, speed);
+        FireBulletInDirection(dirDown, speed);
+        PlayShootSound();
+    }
+
+    private void FireBulletInDirection(Vector2 dir, float speed)
+    {
+        GameObject bullet = GetBulletFromPool();
+        if (bullet == null)
+            return;
+
+        bullet.transform.position = gun.position;
+        bullet.SetActive(true);
+
+        BulletScript b = bullet.GetComponent<BulletScript>();
+        if (b != null)
+        {
+            b.SetSpeed(speed);
+            b.SetDirection(dir);
         }
     }
 
@@ -153,24 +227,31 @@ public class PlayerController : MonoBehaviour
         return null; // No expandimos el pool
     }
 
-
     // ------------------------------
     //      POWERUP: CUCHILLO
     // ------------------------------
     public void ActivateKnifePowerup()
     {
         usingKnife = true;
-        // Aqu� se podr�a cambiar animaci�n, color del arma, etc.
+        // Aquí se podría cambiar animación, color del arma, etc.
     }
 
+    // 🏹 POWERUP: BALLESTA / SPREADGUN
+    public void ActivateCrossbowPowerup()
+    {
+        crossbowActive = true;
+        // Igual que el cuchillo, aquí puedes cambiar animación / icono de UI
+    }
+
+    // Resetea el arma a estado base
     public void ResetWeapon()
     {
         usingKnife = false;
+        crossbowActive = false;
     }
 
-
     // ------------------------------
-    //       MUNCI�N P�BLICA
+    //       MUNCIÓN PÚBLICA
     // ------------------------------
     public void AddAmmo(int amount)
     {
@@ -208,11 +289,11 @@ public class PlayerController : MonoBehaviour
     }
 
     // ------------------------------
-    //   DA�O POR COLISIONES
+    //   DAÑO POR COLISIONES
     // ------------------------------
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // Aqu� solo da�o real, sin deathzone
+        // Aquí solo daño real, sin deathzone
         if (collision.transform.CompareTag("Enemy"))
         {
             hpPlayer?.RemoveHp(1);
@@ -231,4 +312,15 @@ public class PlayerController : MonoBehaviour
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(foot.position, footRadius);
     }
+
+    private void PlayShootSound()
+    {
+        if (shootSfx == null) return;
+
+        if (audioSource != null)
+            audioSource.PlayOneShot(shootSfx);
+        else
+            AudioSource.PlayClipAtPoint(shootSfx, transform.position);
+    }
+
 }
