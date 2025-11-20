@@ -110,9 +110,10 @@ public class EnemyScript : MonoBehaviour
         {
             // podr�as hacer aqu� una anim de muerte
             Die();
-            Destroy(collision.gameObject);
+            
+            collision.gameObject.SetActive(false); // desactivar bala
         }
-        // si quieres que da�e al jugador, lo puedes checar aqu� tambi�n
+      
     }
 
     private void Die()
