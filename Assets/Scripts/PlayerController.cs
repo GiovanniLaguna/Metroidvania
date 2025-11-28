@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
     private float inputX;
     private bool facingRight = true;
     private Rigidbody2D rb;
+    [SerializeField] private Animator animator;
 
     [Header("Ground Check")]
     [SerializeField] private Transform foot;
@@ -78,6 +79,13 @@ public class PlayerController : MonoBehaviour
         // Entrada horizontal
         inputX = Input.GetAxisRaw("Horizontal");
 
+        // ⬇️ ANIMACIÓN DE MOVIMIENTO
+        if (animator != null)
+            animator.SetFloat("Speed", Mathf.Abs(inputX)); // 0 = Idle, >0 = Walk
+                                                           // Flip visual si cambias dirección
+        if (inputX > 0 && !facingRight) Flip();
+        else if (inputX < 0 && facingRight) Flip();
+
         // Salto
         if (Input.GetButtonDown("Jump"))
         {
@@ -88,6 +96,8 @@ public class PlayerController : MonoBehaviour
         if (Input.GetButtonDown("Fire1"))
         {
             Shoot();
+            animator.SetTrigger("Shoot");
+            
         }
 
         HandleFlip();
@@ -144,6 +154,8 @@ public class PlayerController : MonoBehaviour
         {
             ShootSingle();
         }
+        if (animator != null)
+            animator.SetTrigger("Attack");
     }
 
     private void ShootSingle()

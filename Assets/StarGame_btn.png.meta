@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      StarGame_btn_0: -5608436614630573187
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

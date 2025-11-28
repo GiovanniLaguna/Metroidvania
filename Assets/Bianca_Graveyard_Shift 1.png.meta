@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Bianca_Graveyard_Shift 1_0: -4396211248284413527
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
