@@ -51,7 +51,13 @@ public class PlayerController : MonoBehaviour
     [Header("Audio Disparo")]
     [SerializeField] private AudioClip shootSfx;
     [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip theme;
 
+
+    private void Awake()
+    {
+        PlayMusic();
+    }
 
     private void Start()
     {
@@ -339,6 +345,11 @@ public class PlayerController : MonoBehaviour
             audioSource.PlayOneShot(shootSfx);
         else
             AudioSource.PlayClipAtPoint(shootSfx, transform.position);
+    }
+
+    private void PlayMusic()
+    {
+        AudioSource.PlayClipAtPoint(theme, transform.position);
     }
 
 }

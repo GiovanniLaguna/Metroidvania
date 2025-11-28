@@ -50,6 +50,7 @@ public class HpPlayer : HpBase
         if (currentHp <= 0)
         {
             HandlePlayerDeath();
+            UnityEngine.SceneManagement.SceneManager.LoadScene("GameOverScene");
         }
     }
     // ------------------------------
@@ -70,5 +71,6 @@ public class HpPlayer : HpBase
         playerController?.Death();
         gameManager?.GameOver();
         onDieEvent?.Invoke();
+        
     }
 }
