@@ -13,9 +13,9 @@ public class VolumeControl : MonoBehaviour
 
     void Start()
     {
-        float _masterVolume = 0;
-        float _sfxVolume = 0;
-        float _musicVolume = 0;
+        float _masterVolume = 1;
+        float _sfxVolume = 1;
+        float _musicVolume = 1;
 
         master.audioMixer.GetFloat(masterVolume, out _masterVolume);
         music.audioMixer.GetFloat(musicVolume, out _musicVolume);

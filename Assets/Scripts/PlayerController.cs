@@ -299,6 +299,12 @@ public class PlayerController : MonoBehaviour
             hpPlayer?.RemoveHp(1);
         }
     }
+    public void EnableControl()
+    {
+        this.enabled = true;
+        if (rb != null)
+            rb.linearVelocity = Vector2.zero;
+    }
 
     public void Death()
     {

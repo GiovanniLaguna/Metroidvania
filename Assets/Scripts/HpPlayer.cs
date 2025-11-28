@@ -52,6 +52,15 @@ public class HpPlayer : HpBase
             HandlePlayerDeath();
         }
     }
+    // ------------------------------
+    //        RESET DE VIDA
+    // ------------------------------
+    public void ResetHpToFull()
+    {
+        currentHp = maxHp;
+        // Notificar a la UI que la vida cambió
+        onModifyHpEvent?.Invoke(currentHp);
+    }
 
     // ------------------------------
     //           DEATH FLOW
