@@ -242,6 +242,9 @@ GameObject:
   - component: {fileID: 199799183}
   - component: {fileID: 199799185}
   - component: {fileID: 199799184}
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   m_Layer: 0
   m_Name: Ojocielago-Sheet_0 (1)
