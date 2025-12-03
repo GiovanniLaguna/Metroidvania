@@ -4,14 +4,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-
-
-    public class GameManager : MonoBehaviour
-=======
-=======
->>>>>>> Stashed changes
 public class GameManager : MonoBehaviour
 {
     [Header("Monedas")]
@@ -32,47 +24,17 @@ public class GameManager : MonoBehaviour
     public static GameManager instance;
 
     // ========= ESTADO PERSISTENTE DEL PLAYER =========
-    // (Otros scripts ya usan esto, así que lo dejamos)
+    // (Otros scripts ya usan esto, asÃ­ que lo dejamos)
     public static bool hasArmor;
     public static bool hasKnifePowerup;
     public static bool hasCrossbowPowerup;
     public static bool armorInitialized = false;
 
     private void Awake()
->>>>>>> Stashed changes
     {
-        public int coinsCounter = 0;
+        instance = this;
+    }
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        [Range(0, 10)]
-        public int coinsToCollect = 1;
-
-        public GameObject playerGameObject;
-        private PlayerController player;
-        public TextMeshProUGUI coinText;
-        public UnityEvent onGameWinEvents;
-
-        public static GameManager instance;
-
-        private void Awake()
-        {
-            instance = this;
-        }
-
-        void Start()
-        {
-            player = playerGameObject.GetComponent<PlayerController>();
-            coinsCounter = 0;
-            coinText.text = coinsCounter.ToString();
-        }
-
-        public void AddCoins(int amount)
-        {
-            coinsCounter += amount;
-=======
-=======
->>>>>>> Stashed changes
     private void Start()
     {
         if (playerGameObject != null)
@@ -91,10 +53,6 @@ public class GameManager : MonoBehaviour
         coinsCounter += amount;
 
         if (coinText != null)
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
             coinText.text = coinsCounter.ToString();
 
         if (coinsCounter >= coinsToCollect)
@@ -127,25 +85,12 @@ public class GameManager : MonoBehaviour
     {
         LoadSceneWithFadeOrDirect("MenuScene");
     }
-<<<<<<< Updated upstream
-=======
-
-    public void BossFight()
-    {
-        LoadSceneWithFadeOrDirect("BossFight");
-    }
->>>>>>> Stashed changes
 
     public void BossFight()
     {
         LoadSceneWithFadeOrDirect("BossFight");
     }
 
-<<<<<<< Updated upstream
-
-    }
-
-=======
     // -----------------------------
     //        HELPERS
     // -----------------------------
@@ -164,7 +109,3 @@ public class GameManager : MonoBehaviour
         fader.Fade(true);
     }
 }
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes

@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
     private float inputX;
     private bool facingRight = true;
     private Rigidbody2D rb;
+    [SerializeField] private Animator animator;
 
     [Header("Ground Check")]
     [SerializeField] private Transform foot;
@@ -41,18 +42,12 @@ public class PlayerController : MonoBehaviour
     [Header("Audio Disparo")]
     [SerializeField] private AudioClip shootSfx;
     [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip theme;
 
     [Header("Object Pooling")]
     [SerializeField] private int initialPoolSize = 10;
     private readonly List<GameObject> bullets = new List<GameObject>();
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-    [Header("PowerUps")]
-    [SerializeField] private bool usingKnife = false;
-    [SerializeField] private bool crossbowActive = false;
-=======
     [Header("PowerUps")]
     [SerializeField] private bool usingKnife = false;
     [SerializeField] private bool crossbowActive = false;
@@ -63,16 +58,7 @@ public class PlayerController : MonoBehaviour
 
     private bool canShoot = true;
     private float shootTimer = 0f;
->>>>>>> Stashed changes
 
-    [Header("Crossbow Settings")]
-    [SerializeField] private float crossbowSpreadAngle = 15f;
-    [SerializeField] private int crossbowBulletCount = 3;
-
-    private bool canShoot = true;
-    private float shootTimer = 0f;
-
->>>>>>> Stashed changes
     private void Start()
     {
         PlayMusic();
@@ -107,25 +93,13 @@ public class PlayerController : MonoBehaviour
         // Entrada horizontal
         inputX = Input.GetAxisRaw("Horizontal");
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-        // ANIMACIÓN DE MOVIMIENTO
-        if (animator != null)
-            animator.SetFloat("Speed", Mathf.Abs(inputX));
-=======
         // ANIMACIÓN DE MOVIMIENTO
         if (animator != null)
             animator.SetFloat("Speed", Mathf.Abs(inputX));
 
         // Movimiento
         HandleMovement();
->>>>>>> Stashed changes
 
-        // Movimiento
-        HandleMovement();
-
->>>>>>> Stashed changes
         // Salto
         HandleJump();
 
@@ -133,20 +107,7 @@ public class PlayerController : MonoBehaviour
         HandleFlip();
 
         // Disparo
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        if (Input.GetButtonDown("Fire1"))
-        {
-            Shoot();
-        }
-
-        HandleFlip();
-=======
         HandleShooting();
->>>>>>> Stashed changes
-=======
-        HandleShooting();
->>>>>>> Stashed changes
     }
 
     private void HandleMovement()
@@ -209,25 +170,18 @@ public class PlayerController : MonoBehaviour
     private void TryShoot()
     {
         if (!infiniteAmmo && currentAmmo <= 0)
+        {
             return;
+        }
 
         if (crossbowActive)
         {
-            Debug.Log("DISPARO SPREAD");
             ShootCrossbow();
         }
         else
         {
-            Debug.Log("DISPARO NORMAL");
             ShootSingle();
         }
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    }
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 
         if (!infiniteAmmo)
         {
@@ -239,7 +193,6 @@ public class PlayerController : MonoBehaviour
         PlayShootSound();
     }
 
-
     private void ShootSingle()
     {
         GameObject bullet = GetPooledBullet();
@@ -247,28 +200,25 @@ public class PlayerController : MonoBehaviour
         if (bullet != null)
         {
             bullet.transform.position = firePoint.position;
-
-            // Dirección base: derecha o izquierda
-            Vector2 dir = facingRight ? Vector2.right : Vector2.left;
-
-            // Configuramos la dirección en el script de la bala
-            BulletScript bulletScript = bullet.GetComponent<BulletScript>();
-            if (bulletScript != null)
-            {
-                bulletScript.SetDirection(dir);
-            }
-
-            // Rotación visual opcional
-            float angleToLook = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-            bullet.transform.rotation = Quaternion.Euler(0f, 0f, angleToLook);
-
+            bullet.transform.rotation = Quaternion.identity; // rotación simple
             bullet.SetActive(true);
+
+            BulletScript b = bullet.GetComponent<BulletScript>();
+            if (b != null)
+            {
+                // Velocidad de la bala
+                b.SetSpeed(bulletSpeed);
+
+                // Dirección horizontal según hacia dónde mira el player
+                Vector2 dir = facingRight ? Vector2.right : Vector2.left;
+                b.SetDirection(dir);
+            }
         }
     }
 
-
     private void ShootCrossbow()
     {
+        // Por seguridad
         if (crossbowBulletCount <= 1)
         {
             ShootSingle();
@@ -286,31 +236,36 @@ public class PlayerController : MonoBehaviour
             float t = (float)i / (crossbowBulletCount - 1);
             float angle = Mathf.Lerp(startAngle, endAngle, t);
 
-            // Rotamos baseDir por "angle" grados
-            Quaternion rot = Quaternion.Euler(0f, 0f, angle);
-            Vector2 dir = rot * baseDir;
+            // Convertimos el ángulo a radianes y rotamos baseDir
+            float rad = angle * Mathf.Deg2Rad;
 
-            GameObject bullet = GetPooledBullet();
-            if (bullet != null)
-            {
-                bullet.transform.position = firePoint.position;
+            // Rotación 2D de un vector
+            Vector2 dir = new Vector2(
+                baseDir.x * Mathf.Cos(rad) - baseDir.y * Mathf.Sin(rad),
+                baseDir.x * Mathf.Sin(rad) + baseDir.y * Mathf.Cos(rad)
+            );
 
-                BulletScript bulletScript = bullet.GetComponent<BulletScript>();
-                if (bulletScript != null)
-                {
-                    bulletScript.SetDirection(dir);
-                }
-
-                // Rotación visual opcional
-                float angleToLook = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-                bullet.transform.rotation = Quaternion.Euler(0f, 0f, angleToLook);
-
-                bullet.SetActive(true);
-            }
+            FireBulletInDirection(dir);
         }
     }
 
+    private void FireBulletInDirection(Vector2 dir)
+    {
+        GameObject bullet = GetPooledBullet();
+        if (bullet == null)
+            return;
 
+        bullet.transform.position = firePoint.position;
+        bullet.transform.rotation = Quaternion.identity;
+        bullet.SetActive(true);
+
+        BulletScript b = bullet.GetComponent<BulletScript>();
+        if (b != null)
+        {
+            b.SetSpeed(bulletSpeed);
+            b.SetDirection(dir);
+        }
+    }
 
     private GameObject GetPooledBullet()
     {
@@ -361,13 +316,13 @@ public class PlayerController : MonoBehaviour
     public void ActivateKnifePowerup()
     {
         usingKnife = true;
-        GameManager.hasKnifePowerup = true;   // ⬅ se guarda entre escenas
+        GameManager.hasKnifePowerup = true;   // se guarda entre escenas
     }
 
     public void ActivateCrossbowPowerup()
     {
         crossbowActive = true;
-        GameManager.hasCrossbowPowerup = true; // ⬅ se guarda entre escenas
+        GameManager.hasCrossbowPowerup = true; // se guarda entre escenas
     }
 
     public void ResetWeapon()
@@ -412,11 +367,6 @@ public class PlayerController : MonoBehaviour
             healthArmor?.TakeDamage(1);
         }
     }
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> Stashed changes
 
     public void EnableControl()
     {
@@ -424,7 +374,6 @@ public class PlayerController : MonoBehaviour
         if (rb != null)
             rb.linearVelocity = Vector2.zero;
     }
->>>>>>> Stashed changes
 
     public void Death()
     {
@@ -449,14 +398,9 @@ public class PlayerController : MonoBehaviour
             AudioSource.PlayClipAtPoint(shootSfx, transform.position);
     }
 
-<<<<<<< Updated upstream
-=======
     private void PlayMusic()
     {
+        // Usa tu sistema de sonido actual
         SoundList.instance.PlaySound("Theme");
     }
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 }
