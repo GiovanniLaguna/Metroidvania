@@ -100,9 +100,19 @@ public class BulletScript : MonoBehaviour
         {
             hp.RemoveHp(1);
         }
+<<<<<<< Updated upstream
         */
+=======
+
+>>>>>>> Stashed changes
 
         // Devuelve la bala al pool
         gameObject.SetActive(false);
+        var boss = collision.gameObject.GetComponent<Boss>();
+        if (boss != null)
+        {
+            boss.TakeDamage(1);
+        }
+            gameObject.SetActive(false);
     }
 }

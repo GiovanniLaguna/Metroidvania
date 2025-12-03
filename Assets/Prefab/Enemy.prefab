@@ -12,7 +12,7 @@ GameObject:
   m_Layer: 0
   m_Name: foot
   m_TagString: Untagged
-  m_Icon: {fileID: 7174288486110832750, guid: 0000000000000000d000000000000000, type: 0}
+  m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 7268921089565849235}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.49, y: -0.56, z: 0}
+  m_LocalPosition: {x: 0, y: -0.219, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -153,7 +153,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
@@ -167,7 +167,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.4348452, y: 0.6483069}
+  m_Size: {x: 0.4348452, y: 0.57}
   m_EdgeRadius: 0
 --- !u!50 &2931783710106609550
 Rigidbody2D:
@@ -209,11 +209,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 2
+  activationRange: 10
   foot: {fileID: 795315831549670656}
   groundLayer:
     serializedVersion: 2
     m_Bits: 8
-  Drop: {fileID: 0}
+  radius: 0.1
+  drop: {fileID: 0}
+  spawnDuration: 0.6
+  animator: {fileID: 0}
 --- !u!95 &2827103957386388844
 Animator:
   serializedVersion: 7

@@ -1,8 +1,9 @@
 using UnityEngine;
+using DG.Tweening;
 
 public class CarnivorousPlant : MonoBehaviour
 {
-    [Header("Detecci�n")]
+    [Header("Detección")]
     [SerializeField] private Transform player;
     [SerializeField] private float activationRange = 6f;   // distancia a la que empieza a hacer su ciclo
     [SerializeField] private float attackRange = 4f;       // distancia para disparar/morder
@@ -22,13 +23,13 @@ public class CarnivorousPlant : MonoBehaviour
     [SerializeField] private int maxHealth = 1;
     private int currentHealth;
 
-    [Header("Animaci�n (opcional)")]
+    [Header("Animación (opcional)")]
     [SerializeField] private Animator animator; // open / close
 
     private bool isAttacking = false;
     private float timer;
 
-    private void Awake()
+    private void Start()
     {
         currentHealth = maxHealth;
 
@@ -37,7 +38,14 @@ public class CarnivorousPlant : MonoBehaviour
         {
             GameObject p = GameObject.FindGameObjectWithTag("Player");
             if (p != null)
+            {
                 player = p.transform;
+                Debug.Log("[Planta] Player encontrado por tag.");
+            }
+            else
+            {
+                Debug.LogWarning("[Planta] NO encontré ningún objeto con tag 'Player'.");
+            }
         }
 
         timer = idleTime;
@@ -45,11 +53,19 @@ public class CarnivorousPlant : MonoBehaviour
 
     private void Update()
     {
-        if (player == null) return;
+        if (player == null)
+        {
+            // si ves este log en consola, el problema es el tag o la referencia del player
+            Debug.LogWarning("[Planta] Player es null, no puedo detectar distancia.");
+            return;
+        }
+        LookAtPlayer();
 
         float dist = Vector2.Distance(transform.position, player.position);
+        // Debug de distancia
+        // Debug.Log("[Planta] Distancia al player: " + dist);
 
-        // si el jugador est� muy lejos, la planta se queda dormida
+        // si el jugador está muy lejos, la planta se queda dormida
         if (dist > activationRange)
         {
             SetAnimAttack(false);
@@ -64,6 +80,7 @@ public class CarnivorousPlant : MonoBehaviour
             // estamos en estado idle, esperando a atacar
             if (timer <= 0f)
             {
+                Debug.Log("[Planta] Comienza ataque. Distancia actual: " + dist);
                 StartAttack(dist);
             }
         }
@@ -72,6 +89,7 @@ public class CarnivorousPlant : MonoBehaviour
             // estamos atacando
             if (timer <= 0f)
             {
+                Debug.Log("[Planta] Termina ataque.");
                 EndAttack();
             }
         }
@@ -83,13 +101,23 @@ public class CarnivorousPlant : MonoBehaviour
         timer = attackTime;
         SetAnimAttack(true);
 
-        // si el jugador est� en rango de ataque en este momento, atacamos
+        // si el jugador está en rango de ataque en este momento, atacamos
         if (currentDistToPlayer <= attackRange)
         {
             if (shoots)
+            {
+                Debug.Log("[Planta] Disparo al jugador.");
                 ShootAtPlayer();
+            }
             else
+            {
+                Debug.Log("[Planta] Muerdo al jugador.");
                 BitePlayerIfClose();
+            }
+        }
+        else
+        {
+            Debug.Log("[Planta] Player dentro de activationRange pero fuera de attackRange.");
         }
     }
 
@@ -103,26 +131,40 @@ public class CarnivorousPlant : MonoBehaviour
     private void ShootAtPlayer()
     {
         if (projectilePrefab == null || shootPoint == null || player == null)
+        {
+            Debug.LogWarning("[Planta] Falta projectilePrefab o shootPoint o player.");
             return;
+        }
 
         GameObject proj = Instantiate(projectilePrefab, shootPoint.position, Quaternion.identity);
         Vector2 dir = (player.position - shootPoint.position).normalized;
 
-        Rigidbody2D rb = proj.GetComponent<Rigidbody2D>();
-        if (rb != null)
+        // Primero probamos con el script EnemyProjectile
+        EnemyProjectile enemyProj = proj.GetComponent<EnemyProjectile>();
+        if (enemyProj != null)
         {
-            rb.linearVelocity = dir * projectileSpeed;
+            enemyProj.Init(dir, projectileSpeed);
         }
-
-        // si tu proyectil tiene script propio, aqu� le puedes pasar el da�o
-        // proj.GetComponent<EnemyProjectile>()?.Init(damage, dir);
+        else
+        {
+            // Plan B por si no lo tiene: asignar velocidad directa
+            Rigidbody2D rb = proj.GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                rb.linearVelocity = dir * projectileSpeed;
+            }
+            else
+            {
+                Debug.LogWarning("[Planta] El proyectil no tiene EnemyProjectile ni Rigidbody2D.");
+            }
+        }
     }
+
+
 
     private void BitePlayerIfClose()
     {
-        // aqu� puedes hacer un overlap para ver si lo agarra
-        // Collider2D hit = Physics2D.OverlapCircle(mouthPoint.position, 0.5f, playerLayer);
-        // if (hit != null) hit.GetComponent<PlayerHealth>()?.TakeDamage(1);
+        // TODO: aquí puedes hacer un OverlapCircle para daño cuerpo a cuerpo
     }
 
     public void TakeDamage(int dmg)
@@ -134,9 +176,16 @@ public class CarnivorousPlant : MonoBehaviour
 
     private void Die()
     {
-        // anim de morir
-        // Drop
-        gameObject.SetActive(false);
+        // Evita que vuelva a tomar daño o ataque
+        this.enabled = false;
+
+        // Tween de escala (se hace chiquita)
+        transform.DOScale(Vector3.zero, 0.35f)
+            .SetEase(Ease.InBack)
+            .OnComplete(() =>
+            {
+                gameObject.SetActive(false); // o Destroy(gameObject)
+            });
     }
 
     private void SetAnimAttack(bool value)
@@ -147,7 +196,7 @@ public class CarnivorousPlant : MonoBehaviour
         }
     }
 
-    // opcional: ver �rea en editor
+    // opcional: ver área en editor
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
@@ -156,4 +205,37 @@ public class CarnivorousPlant : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackRange);
     }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        // Si quieres que la planta reciba daño al colisionar con algo, hazlo aquí
+        if (collision.CompareTag("Bullet"))
+        {
+            Die();
+
+        collision.gameObject.SetActive(false); // desactivar bala
+        }
+    }
+    private void LookAtPlayer()
+    {
+        if (player == null) return;
+
+        float dir = player.position.x - transform.position.x;
+
+        // Si el jugador está a la derecha → mira a la derecha
+        if (dir > 0 && transform.localScale.x < 0)
+        {
+            Vector3 scale = transform.localScale;
+            scale.x *= -1;
+            transform.localScale = scale;
+        }
+        // Si el jugador está a la izquierda → mira a la izquierda
+        else if (dir < 0 && transform.localScale.x > 0)
+        {
+            Vector3 scale = transform.localScale;
+            scale.x *= -1;
+            transform.localScale = scale;
+        }
+    }
+
 }

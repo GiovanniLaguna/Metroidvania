@@ -8,6 +8,7 @@ public class Fader : MonoBehaviour
     public float animationTime;
     public UnityEvent EndFadeEvent;
     public bool fadeOutOnStart;
+    private Tween Tween;
     void Start()
     {
         if (fadeOutOnStart)
@@ -18,14 +19,16 @@ public class Fader : MonoBehaviour
 
     public void Fade(bool fadeIn)
     {
+        Tween?.Kill();
         float targetValue = fadeIn ? 1f : 0f;
 
         if (image.type == Image.Type.Filled)
         {
-            image.DOFillAmount(targetValue, animationTime).OnComplete(EndFadeEvent.Invoke).SetDelay(2);
+
+Tween = image.DOFillAmount(targetValue, animationTime).OnComplete(EndFadeEvent.Invoke).SetDelay(2);
             return;
         }
-        image.DOFade(targetValue, animationTime).OnComplete(EndFadeEvent.Invoke);
+Tween = image.DOFade(targetValue, animationTime).OnComplete(EndFadeEvent.Invoke);
     }
 
 }

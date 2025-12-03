@@ -13,36 +13,27 @@ public class PlayerController : MonoBehaviour
 
     [Header("Ground Check")]
     [SerializeField] private Transform foot;
-    [SerializeField] private float footRadius = 0.2f;
+    [SerializeField] private float footRadius = 0.1f;
     [SerializeField] private LayerMask groundLayer;
-    public bool isGrounded;
+    private bool isGrounded;
     private int jumpCounter = 0;
-    private const int MAX_JUMPS = 2;
 
-    [Header("Disparo / Pool de Balas")]
+    [Header("Salto")]
+    [SerializeField] private int maxJumps = 1;
+
+    [Header("Disparo")]
     [SerializeField] private GameObject bulletPrefab;
-    [SerializeField] private Transform gun;
-    [SerializeField] private int initialPoolSize = 5;
-    private List<GameObject> bullets = new List<GameObject>();
-
-    [Header("Arma / Powerups")]
-    [SerializeField] private float normalBulletSpeed = 10f;
-    [SerializeField] private float knifeBulletSpeed = 18f;
-    private bool usingKnife = false;
-
-    // 🏹 Ballesta / SpreadGun
-    [Header("Ballesta / SpreadGun")]
-    [SerializeField] private bool crossbowActive = false;
-    [SerializeField] private float spreadAngle = 15f; // grados hacia arriba / abajo
-
-    [Header("Munición")]
-    [SerializeField] private int maxAmmo = 20;
+    [SerializeField] private Transform firePoint;
+    [SerializeField] private float bulletSpeed = 10f;
+    [SerializeField] private float shootCooldown = 0.25f;
+    [SerializeField] private int maxAmmo = 10;
     [SerializeField] private int startingAmmo = 10;
     [SerializeField] private bool infiniteAmmo = false;
 
-    [Header("HP")]
-    [SerializeField] private HpPlayer hpPlayer;
+    [Header("HP / Armadura")]
+    [SerializeField] private PlayerHealthArmor healthArmor;
 
+    [Header("UI")]
     [SerializeField] private Text ammoText;
 
     private int currentAmmo;
@@ -51,13 +42,31 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private AudioClip shootSfx;
     [SerializeField] private AudioSource audioSource;
 
+    [Header("Object Pooling")]
+    [SerializeField] private int initialPoolSize = 10;
+    private readonly List<GameObject> bullets = new List<GameObject>();
 
+<<<<<<< Updated upstream
+=======
+    [Header("PowerUps")]
+    [SerializeField] private bool usingKnife = false;
+    [SerializeField] private bool crossbowActive = false;
+
+    [Header("Crossbow Settings")]
+    [SerializeField] private float crossbowSpreadAngle = 15f;
+    [SerializeField] private int crossbowBulletCount = 3;
+
+    private bool canShoot = true;
+    private float shootTimer = 0f;
+
+>>>>>>> Stashed changes
     private void Start()
     {
+        PlayMusic();
         rb = GetComponent<Rigidbody2D>();
 
-        if (hpPlayer == null)
-            hpPlayer = GetComponent<HpPlayer>();
+        if (healthArmor == null)
+            healthArmor = GetComponent<PlayerHealthArmor>();
 
         // Crear pool de balas
         for (int i = 0; i < initialPoolSize; i++)
@@ -69,6 +78,13 @@ public class PlayerController : MonoBehaviour
 
         currentAmmo = Mathf.Clamp(startingAmmo, 0, maxAmmo);
         UpdateAmmoUI();
+
+        // ======= CARGAR POWERUPS PERSISTENTES DESDE GAMEMANAGER =======
+        if (GameManager.hasKnifePowerup)
+            usingKnife = true;
+
+        if (GameManager.hasCrossbowPowerup)
+            crossbowActive = true;
     }
 
     private void Update()
@@ -78,38 +94,60 @@ public class PlayerController : MonoBehaviour
         // Entrada horizontal
         inputX = Input.GetAxisRaw("Horizontal");
 
+<<<<<<< Updated upstream
+=======
+        // ANIMACIÓN DE MOVIMIENTO
+        if (animator != null)
+            animator.SetFloat("Speed", Mathf.Abs(inputX));
+
+        // Movimiento
+        HandleMovement();
+
+>>>>>>> Stashed changes
         // Salto
-        if (Input.GetButtonDown("Jump"))
-        {
-            AttemptJump();
-        }
+        HandleJump();
+
+        // Flip
+        HandleFlip();
 
         // Disparo
+<<<<<<< Updated upstream
         if (Input.GetButtonDown("Fire1"))
         {
             Shoot();
         }
 
         HandleFlip();
+=======
+        HandleShooting();
+>>>>>>> Stashed changes
     }
 
-    private void FixedUpdate()
+    private void HandleMovement()
     {
         rb.linearVelocity = new Vector2(inputX * moveSpeed, rb.linearVelocity.y);
     }
 
-    // ------------------------------
-    //       SALTO / GROUND
-    // ------------------------------
-    private void AttemptJump()
+    private void HandleJump()
     {
-        if (!isGrounded && jumpCounter >= MAX_JUMPS)
-            return;
+        if (Input.GetButtonDown("Jump"))
+        {
+            if (isGrounded || jumpCounter < maxJumps)
+            {
+                Jump();
+                jumpCounter++;
+            }
+        }
+    }
 
-        jumpCounter++;
-        jumpCounter = Mathf.Clamp(jumpCounter, 0, MAX_JUMPS);
+    public void EnableDoubleJump()
+    {
+        maxJumps = 2;
+    }
 
-        rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
+    private void Jump()
+    {
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
 
@@ -124,145 +162,192 @@ public class PlayerController : MonoBehaviour
     // ------------------------------
     //           DISPARO
     // ------------------------------
-    private void Shoot()
+    private void HandleShooting()
+    {
+        if (!canShoot)
+        {
+            shootTimer += Time.deltaTime;
+            if (shootTimer >= shootCooldown)
+            {
+                canShoot = true;
+                shootTimer = 0f;
+            }
+        }
+
+        if (Input.GetButtonDown("Fire1") && canShoot)
+        {
+            TryShoot();
+        }
+    }
+
+    private void TryShoot()
     {
         if (!infiniteAmmo && currentAmmo <= 0)
             return;
 
-        // Consumimos 1 de munición por disparo (aunque salgan 3 balas en spread)
-        if (!infiniteAmmo)
-        {
-            currentAmmo = Mathf.Clamp(currentAmmo - 1, 0, maxAmmo);
-            UpdateAmmoUI();
-        }
-
         if (crossbowActive)
         {
-            ShootSpread();
+            Debug.Log("DISPARO SPREAD");
+            ShootCrossbow();
         }
         else
         {
+            Debug.Log("DISPARO NORMAL");
             ShootSingle();
         }
+<<<<<<< Updated upstream
     }
+=======
+>>>>>>> Stashed changes
 
-    private void ShootSingle()
-    {
-        GameObject bullet = GetBulletFromPool();
-        if (bullet == null)
-            return;
-
-        bullet.transform.position = gun.position;
-        bullet.SetActive(true);
-
-        BulletScript b = bullet.GetComponent<BulletScript>();
-        if (b != null)
+        if (!infiniteAmmo)
         {
-            float speed = usingKnife ? knifeBulletSpeed : normalBulletSpeed;
-            b.SetSpeed(speed);
-
-            // Dirección horizontal según hacia dónde mira el jugador
-            Vector2 dir = facingRight ? Vector2.right : Vector2.left;
-            b.SetDirection(dir);
+            currentAmmo = Mathf.Max(0, currentAmmo - 1);
+            UpdateAmmoUI();
         }
+
+        canShoot = false;
         PlayShootSound();
     }
 
-    // 🏹 Disparo tipo spread (3 balas)
-    private void ShootSpread()
+
+    private void ShootSingle()
     {
-        float speed = usingKnife ? knifeBulletSpeed : normalBulletSpeed;
+        GameObject bullet = GetPooledBullet();
+
+        if (bullet != null)
+        {
+            bullet.transform.position = firePoint.position;
+
+            // Dirección base: derecha o izquierda
+            Vector2 dir = facingRight ? Vector2.right : Vector2.left;
+
+            // Configuramos la dirección en el script de la bala
+            BulletScript bulletScript = bullet.GetComponent<BulletScript>();
+            if (bulletScript != null)
+            {
+                bulletScript.SetDirection(dir);
+            }
+
+            // Rotación visual opcional
+            float angleToLook = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+            bullet.transform.rotation = Quaternion.Euler(0f, 0f, angleToLook);
+
+            bullet.SetActive(true);
+        }
+    }
+
+
+    private void ShootCrossbow()
+    {
+        if (crossbowBulletCount <= 1)
+        {
+            ShootSingle();
+            return;
+        }
+
+        float startAngle = -crossbowSpreadAngle;
+        float endAngle = crossbowSpreadAngle;
 
         // Dirección base (derecha o izquierda)
         Vector2 baseDir = facingRight ? Vector2.right : Vector2.left;
 
-        // Centro
-        FireBulletInDirection(baseDir, speed);
-
-        // Ángulo en radianes
-        float rad = spreadAngle * Mathf.Deg2Rad;
-
-        // Arriba
-        Vector2 dirUp = new Vector2(
-            baseDir.x * Mathf.Cos(rad),
-            Mathf.Sin(rad)
-        );
-
-        // Abajo
-        Vector2 dirDown = new Vector2(
-            baseDir.x * Mathf.Cos(rad),
-            -Mathf.Sin(rad)
-        );
-
-        FireBulletInDirection(dirUp, speed);
-        FireBulletInDirection(dirDown, speed);
-        PlayShootSound();
-    }
-
-    private void FireBulletInDirection(Vector2 dir, float speed)
-    {
-        GameObject bullet = GetBulletFromPool();
-        if (bullet == null)
-            return;
-
-        bullet.transform.position = gun.position;
-        bullet.SetActive(true);
-
-        BulletScript b = bullet.GetComponent<BulletScript>();
-        if (b != null)
+        for (int i = 0; i < crossbowBulletCount; i++)
         {
-            b.SetSpeed(speed);
-            b.SetDirection(dir);
+            float t = (float)i / (crossbowBulletCount - 1);
+            float angle = Mathf.Lerp(startAngle, endAngle, t);
+
+            // Rotamos baseDir por "angle" grados
+            Quaternion rot = Quaternion.Euler(0f, 0f, angle);
+            Vector2 dir = rot * baseDir;
+
+            GameObject bullet = GetPooledBullet();
+            if (bullet != null)
+            {
+                bullet.transform.position = firePoint.position;
+
+                BulletScript bulletScript = bullet.GetComponent<BulletScript>();
+                if (bulletScript != null)
+                {
+                    bulletScript.SetDirection(dir);
+                }
+
+                // Rotación visual opcional
+                float angleToLook = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+                bullet.transform.rotation = Quaternion.Euler(0f, 0f, angleToLook);
+
+                bullet.SetActive(true);
+            }
         }
     }
 
-    private GameObject GetBulletFromPool()
+
+
+    private GameObject GetPooledBullet()
     {
-        foreach (GameObject b in bullets)
+        foreach (GameObject bullet in bullets)
         {
-            if (!b.activeInHierarchy)
-                return b;
+            if (!bullet.activeInHierarchy)
+            {
+                return bullet;
+            }
         }
 
-        return null; // No expandimos el pool
+        GameObject newBullet = Instantiate(bulletPrefab, Vector3.zero, Quaternion.identity);
+        newBullet.SetActive(false);
+        bullets.Add(newBullet);
+        return newBullet;
     }
 
-    // ------------------------------
-    //      POWERUP: CUCHILLO
-    // ------------------------------
-    public void ActivateKnifePowerup()
+    private void UpdateAmmoUI()
     {
-        usingKnife = true;
-        // Aquí se podría cambiar animación, color del arma, etc.
+        if (ammoText != null)
+        {
+            if (infiniteAmmo)
+            {
+                ammoText.text = "∞";
+            }
+            else
+            {
+                ammoText.text = currentAmmo.ToString();
+            }
+        }
     }
 
-    // 🏹 POWERUP: BALLESTA / SPREADGUN
-    public void ActivateCrossbowPowerup()
-    {
-        crossbowActive = true;
-        // Igual que el cuchillo, aquí puedes cambiar animación / icono de UI
-    }
-
-    // Resetea el arma a estado base
-    public void ResetWeapon()
-    {
-        usingKnife = false;
-        crossbowActive = false;
-    }
-
-    // ------------------------------
-    //       MUNCIÓN PÚBLICA
-    // ------------------------------
     public void AddAmmo(int amount)
     {
         currentAmmo = Mathf.Clamp(currentAmmo + amount, 0, maxAmmo);
         UpdateAmmoUI();
     }
 
-    private void UpdateAmmoUI()
+    public void SetInfiniteAmmo(bool value)
     {
-        if (ammoText != null)
-            ammoText.text = currentAmmo.ToString();
+        infiniteAmmo = value;
+        UpdateAmmoUI();
+    }
+
+    // ------------------------------
+    //      POWERUPS PERSISTENTES
+    // ------------------------------
+    public void ActivateKnifePowerup()
+    {
+        usingKnife = true;
+        GameManager.hasKnifePowerup = true;   // ⬅ se guarda entre escenas
+    }
+
+    public void ActivateCrossbowPowerup()
+    {
+        crossbowActive = true;
+        GameManager.hasCrossbowPowerup = true; // ⬅ se guarda entre escenas
+    }
+
+    public void ResetWeapon()
+    {
+        usingKnife = false;
+        crossbowActive = false;
+
+        GameManager.hasKnifePowerup = false;
+        GameManager.hasCrossbowPowerup = false;
     }
 
     // ------------------------------
@@ -293,12 +378,21 @@ public class PlayerController : MonoBehaviour
     // ------------------------------
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // Aquí solo daño real, sin deathzone
         if (collision.transform.CompareTag("Enemy"))
         {
-            hpPlayer?.RemoveHp(1);
+            healthArmor?.TakeDamage(1);
         }
     }
+<<<<<<< Updated upstream
+=======
+
+    public void EnableControl()
+    {
+        this.enabled = true;
+        if (rb != null)
+            rb.linearVelocity = Vector2.zero;
+    }
+>>>>>>> Stashed changes
 
     public void Death()
     {
@@ -323,4 +417,11 @@ public class PlayerController : MonoBehaviour
             AudioSource.PlayClipAtPoint(shootSfx, transform.position);
     }
 
+<<<<<<< Updated upstream
+=======
+    private void PlayMusic()
+    {
+        SoundList.instance.PlaySound("Theme");
+    }
+>>>>>>> Stashed changes
 }

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class CrowEnemy : EnemyBase
 {
@@ -44,8 +44,26 @@ public class CrowEnemy : EnemyBase
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // Da�o al player si tienes collider trigger
-        if (other.CompareTag("Player"))
-            other.GetComponentInParent<PlayerHealthArmor>()?.TakeDamage(1);
+        // Daño al player sin depender del tag
+        PlayerHealthArmor playerHealth = other.GetComponentInParent<PlayerHealthArmor>();
+        if (playerHealth != null)
+        {
+            playerHealth.TakeDamage(1);
+            return;
+        }
+
+        // bala del jugador
+        if (other.CompareTag("Bullet"))
+        {
+            Die();
+            other.gameObject.SetActive(false); // desactivar bala
+        }
+    }
+
+
+    private void Die()
+    {
+
+        gameObject.SetActive(false);
     }
 }

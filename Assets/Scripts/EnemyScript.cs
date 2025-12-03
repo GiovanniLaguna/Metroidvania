@@ -9,6 +9,7 @@ public class EnemyScript : MonoBehaviour
     [SerializeField] private float activationRange = 10f; // se activa si el player est� cerca
     [SerializeField] private Transform foot;
     [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private float radius = 0.1f;
 
     [Header("Drop (opcional)")]
     [SerializeField] private GameObject drop;
@@ -56,7 +57,7 @@ public class EnemyScript : MonoBehaviour
         float dist = Vector2.Distance(transform.position, player.position);
         if (dist > activationRange)
         {
-            rb.linearVelocity = Vector2.zero;
+//rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
             return;
         }
 
@@ -81,7 +82,7 @@ public class EnemyScript : MonoBehaviour
 
         // avanzar hacia el player en X
         float dir = Mathf.Sign(player.position.x - transform.position.x);
-        rb.linearVelocity = new Vector2(dir * speed, rb.linearVelocity.y);
+        rb.linearVelocity = new Vector2(dir * speed, 0);
     }
 
     private void FacePlayer()
@@ -96,11 +97,20 @@ public class EnemyScript : MonoBehaviour
             transform.localScale = s;
         }
     }
-
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(foot.position, radius);
+    }
     bool IsGrounded()
     {
         if (foot == null) return true;
-        return Physics2D.OverlapCircle(foot.position, 0.2f, groundLayer);
+        Collider2D collider = Physics2D.OverlapCircle(foot.position, radius, groundLayer);
+        if (collider != null)
+        {
+            Debug.Log(collider.transform.name);
+        }
+        return collider != null;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -115,6 +125,17 @@ public class EnemyScript : MonoBehaviour
         }
       
     }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        // Buscar salud del jugador en el objeto con el que chocamos
+        PlayerHealthArmor playerHealth = collision.collider.GetComponentInParent<PlayerHealthArmor>();
+        if (playerHealth != null)
+        {
+            playerHealth.TakeDamage(1);
+        }
+    }
+
 
     private void Die()
     {

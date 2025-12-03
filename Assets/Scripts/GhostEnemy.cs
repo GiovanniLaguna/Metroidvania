@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class GhostEnemy : EnemyBase
 {
@@ -30,7 +30,7 @@ public class GhostEnemy : EnemyBase
         float dist = Vector2.Distance(player.position, transform.position);
         if (dist > chaseRange) { animator?.SetFloat("Speed", 0f); return; }
 
-        // moverse hacia el jugador atravesando todo (no usamos f�sica)
+        // moverse hacia el jugador atravesando todo (no usamos física)
         Vector2 dir = (player.position - transform.position).normalized;
         transform.position += (Vector3)(dir * speed * Time.deltaTime);
 
@@ -45,7 +45,27 @@ public class GhostEnemy : EnemyBase
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Player"))
-            other.GetComponentInParent<PlayerHealthArmor>()?.TakeDamage(1);
+        // Buscar salud del jugador en el padre, sin depender del tag
+        PlayerHealthArmor playerHealth = other.GetComponentInParent<PlayerHealthArmor>();
+        if (playerHealth != null)
+        {
+            playerHealth.TakeDamage(1);
+            return; // ya hicimos lo importante
+        }
+
+        // bala del jugador
+        if (other.CompareTag("Bullet"))
+        {
+            Die();
+            other.gameObject.SetActive(false); // desactivar bala
+        }
+    }
+
+
+
+    private void  Die ()
+    {
+
+        gameObject.SetActive(false);
     }
 }
