@@ -24,7 +24,7 @@ public class GameManager : MonoBehaviour
     public static GameManager instance;
 
     // ========= ESTADO PERSISTENTE DEL PLAYER =========
-    // (Otros scripts ya usan esto, así que lo dejamos)
+    // (Otros scripts ya usan esto, as� que lo dejamos)
     public static bool hasArmor;
     public static bool hasKnifePowerup;
     public static bool hasCrossbowPowerup;

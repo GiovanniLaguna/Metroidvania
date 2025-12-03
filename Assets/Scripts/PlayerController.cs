@@ -170,16 +170,16 @@ public class PlayerController : MonoBehaviour
     private void TryShoot()
     {
         if (!infiniteAmmo && currentAmmo <= 0)
-        {
             return;
-        }
 
         if (crossbowActive)
         {
+            Debug.Log("DISPARO SPREAD");
             ShootCrossbow();
         }
         else
         {
+            Debug.Log("DISPARO NORMAL");
             ShootSingle();
         }
 
@@ -193,6 +193,7 @@ public class PlayerController : MonoBehaviour
         PlayShootSound();
     }
 
+
     private void ShootSingle()
     {
         GameObject bullet = GetPooledBullet();
@@ -200,25 +201,28 @@ public class PlayerController : MonoBehaviour
         if (bullet != null)
         {
             bullet.transform.position = firePoint.position;
-            bullet.transform.rotation = Quaternion.identity; // rotación simple
-            bullet.SetActive(true);
 
-            BulletScript b = bullet.GetComponent<BulletScript>();
-            if (b != null)
+            // Dirección base: derecha o izquierda
+            Vector2 dir = facingRight ? Vector2.right : Vector2.left;
+
+            // Configuramos la dirección en el script de la bala
+            BulletScript bulletScript = bullet.GetComponent<BulletScript>();
+            if (bulletScript != null)
             {
-                // Velocidad de la bala
-                b.SetSpeed(bulletSpeed);
-
-                // Dirección horizontal según hacia dónde mira el player
-                Vector2 dir = facingRight ? Vector2.right : Vector2.left;
-                b.SetDirection(dir);
+                bulletScript.SetDirection(dir);
             }
+
+            // Rotación visual opcional
+            float angleToLook = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+            bullet.transform.rotation = Quaternion.Euler(0f, 0f, angleToLook);
+
+            bullet.SetActive(true);
         }
     }
 
+
     private void ShootCrossbow()
     {
-        // Por seguridad
         if (crossbowBulletCount <= 1)
         {
             ShootSingle();
@@ -236,36 +240,31 @@ public class PlayerController : MonoBehaviour
             float t = (float)i / (crossbowBulletCount - 1);
             float angle = Mathf.Lerp(startAngle, endAngle, t);
 
-            // Convertimos el ángulo a radianes y rotamos baseDir
-            float rad = angle * Mathf.Deg2Rad;
+            // Rotamos baseDir por "angle" grados
+            Quaternion rot = Quaternion.Euler(0f, 0f, angle);
+            Vector2 dir = rot * baseDir;
 
-            // Rotación 2D de un vector
-            Vector2 dir = new Vector2(
-                baseDir.x * Mathf.Cos(rad) - baseDir.y * Mathf.Sin(rad),
-                baseDir.x * Mathf.Sin(rad) + baseDir.y * Mathf.Cos(rad)
-            );
+            GameObject bullet = GetPooledBullet();
+            if (bullet != null)
+            {
+                bullet.transform.position = firePoint.position;
 
-            FireBulletInDirection(dir);
+                BulletScript bulletScript = bullet.GetComponent<BulletScript>();
+                if (bulletScript != null)
+                {
+                    bulletScript.SetDirection(dir);
+                }
+
+                // Rotación visual opcional
+                float angleToLook = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+                bullet.transform.rotation = Quaternion.Euler(0f, 0f, angleToLook);
+
+                bullet.SetActive(true);
+            }
         }
     }
 
-    private void FireBulletInDirection(Vector2 dir)
-    {
-        GameObject bullet = GetPooledBullet();
-        if (bullet == null)
-            return;
 
-        bullet.transform.position = firePoint.position;
-        bullet.transform.rotation = Quaternion.identity;
-        bullet.SetActive(true);
-
-        BulletScript b = bullet.GetComponent<BulletScript>();
-        if (b != null)
-        {
-            b.SetSpeed(bulletSpeed);
-            b.SetDirection(dir);
-        }
-    }
 
     private GameObject GetPooledBullet()
     {
@@ -317,12 +316,14 @@ public class PlayerController : MonoBehaviour
     {
         usingKnife = true;
         GameManager.hasKnifePowerup = true;   // se guarda entre escenas
+        GameManager.hasKnifePowerup = true;   // ⬅ se guarda entre escenas
     }
 
     public void ActivateCrossbowPowerup()
     {
         crossbowActive = true;
         GameManager.hasCrossbowPowerup = true; // se guarda entre escenas
+        GameManager.hasCrossbowPowerup = true; // ⬅ se guarda entre escenas
     }
 
     public void ResetWeapon()
@@ -400,7 +401,6 @@ public class PlayerController : MonoBehaviour
 
     private void PlayMusic()
     {
-        // Usa tu sistema de sonido actual
         SoundList.instance.PlaySound("Theme");
     }
 }
