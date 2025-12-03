@@ -47,10 +47,23 @@ public class PlayerController : MonoBehaviour
     private readonly List<GameObject> bullets = new List<GameObject>();
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
     [Header("PowerUps")]
     [SerializeField] private bool usingKnife = false;
     [SerializeField] private bool crossbowActive = false;
+=======
+    [Header("PowerUps")]
+    [SerializeField] private bool usingKnife = false;
+    [SerializeField] private bool crossbowActive = false;
+
+    [Header("Crossbow Settings")]
+    [SerializeField] private float crossbowSpreadAngle = 15f;
+    [SerializeField] private int crossbowBulletCount = 3;
+
+    private bool canShoot = true;
+    private float shootTimer = 0f;
+>>>>>>> Stashed changes
 
     [Header("Crossbow Settings")]
     [SerializeField] private float crossbowSpreadAngle = 15f;
@@ -95,10 +108,19 @@ public class PlayerController : MonoBehaviour
         inputX = Input.GetAxisRaw("Horizontal");
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
         // ANIMACIÓN DE MOVIMIENTO
         if (animator != null)
             animator.SetFloat("Speed", Mathf.Abs(inputX));
+=======
+        // ANIMACIÓN DE MOVIMIENTO
+        if (animator != null)
+            animator.SetFloat("Speed", Mathf.Abs(inputX));
+
+        // Movimiento
+        HandleMovement();
+>>>>>>> Stashed changes
 
         // Movimiento
         HandleMovement();
@@ -112,12 +134,16 @@ public class PlayerController : MonoBehaviour
 
         // Disparo
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         if (Input.GetButtonDown("Fire1"))
         {
             Shoot();
         }
 
         HandleFlip();
+=======
+        HandleShooting();
+>>>>>>> Stashed changes
 =======
         HandleShooting();
 >>>>>>> Stashed changes
@@ -196,7 +222,10 @@ public class PlayerController : MonoBehaviour
             ShootSingle();
         }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     }
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 
@@ -384,7 +413,10 @@ public class PlayerController : MonoBehaviour
         }
     }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
 
     public void EnableControl()
     {
@@ -423,5 +455,8 @@ public class PlayerController : MonoBehaviour
     {
         SoundList.instance.PlaySound("Theme");
     }
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 }

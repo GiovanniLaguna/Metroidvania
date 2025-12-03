@@ -5,10 +5,13 @@ using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
 
     public class GameManager : MonoBehaviour
 =======
+=======
+>>>>>>> Stashed changes
 public class GameManager : MonoBehaviour
 {
     [Header("Monedas")]
@@ -41,6 +44,7 @@ public class GameManager : MonoBehaviour
         public int coinsCounter = 0;
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         [Range(0, 10)]
         public int coinsToCollect = 1;
 
@@ -67,6 +71,8 @@ public class GameManager : MonoBehaviour
         {
             coinsCounter += amount;
 =======
+=======
+>>>>>>> Stashed changes
     private void Start()
     {
         if (playerGameObject != null)
@@ -85,6 +91,9 @@ public class GameManager : MonoBehaviour
         coinsCounter += amount;
 
         if (coinText != null)
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
             coinText.text = coinsCounter.ToString();
 
@@ -118,6 +127,14 @@ public class GameManager : MonoBehaviour
     {
         LoadSceneWithFadeOrDirect("MenuScene");
     }
+<<<<<<< Updated upstream
+=======
+
+    public void BossFight()
+    {
+        LoadSceneWithFadeOrDirect("BossFight");
+    }
+>>>>>>> Stashed changes
 
     public void BossFight()
     {
@@ -147,4 +164,7 @@ public class GameManager : MonoBehaviour
         fader.Fade(true);
     }
 }
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes

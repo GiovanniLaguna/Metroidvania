@@ -101,7 +101,11 @@ public class BulletScript : MonoBehaviour
             hp.RemoveHp(1);
         }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         */
+=======
+
+>>>>>>> Stashed changes
 =======
 
 >>>>>>> Stashed changes
